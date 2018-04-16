@@ -77,7 +77,7 @@ exports.create = function (api) {
       classList.push('-unread')
     }
 
-    if (api.profile.obs.contact(msg.value.author).blockingFriendsCount() > 3) {
+    if (api.profile.obs.contact(msg.value.author).blockingFriendsCount() > 3 && !yourFollows().includes(msg.value.author)) {
 
       classList.push('-friendsBlocking')
       hidden.set(true)
