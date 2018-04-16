@@ -17,7 +17,6 @@ exports.needs = nest({
     action: 'map',
     timestamp: 'first',
     backlinks: 'first',
-    friendsBlocking: 'first'
   },
   'about.html.image': 'first',
   'intl.sync.i18n': 'first'
