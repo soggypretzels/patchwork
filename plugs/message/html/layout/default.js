@@ -9,13 +9,15 @@ exports.needs = nest({
   'message.obs.name': 'first',
   'message.obs.author': 'first',
   'contact.obs.following': 'first',
+  'profile.obs.contact': 'first',
   'keys.sync.id': 'first',
   'message.html': {
     link: 'first',
     meta: 'map',
     action: 'map',
     timestamp: 'first',
-    backlinks: 'first'
+    backlinks: 'first',
+    friendsBlocking: 'first'
   },
   'about.html.image': 'first',
   'intl.sync.i18n': 'first'
@@ -37,12 +39,12 @@ exports.create = function (api) {
 
   function layout (msg, {layout, previousId, priority, content, includeReferences = false, includeForks = true, compact = false}) {
     if (!(layout === undefined || layout === 'default')) return
-
     var classList = ['Message']
     var replyInfo = null
 
     var needsExpand = Value(false)
     var expanded = Value(false)
+    var hidden = Value(false)
 
     // new message previews shouldn't contract
     if (!msg.key) expanded.set(true)
@@ -75,14 +77,25 @@ exports.create = function (api) {
       classList.push('-unread')
     }
 
+    if (api.profile.obs.contact(msg.value.author).blockingFriendsCount() > 3) {
+
+      classList.push('-friendsBlocking')
+      hidden.set(true)
+      //content = h('div.main', ['⚠️ Message hidden because your friends block this user ',api.profile.html.person(msg.value.author)])
+      //var element = api.message.html.friendsBlocking(msg)
+      //element.dataset = {} //not sure why this needs to be here. Where does this get set otherwise?
+      //return element
+    }
+    
     return h('div', {
       classList
     }, [
-      messageHeader(msg, { replyInfo, priority, needsExpand, expanded }),
-      h('section', {
+      messageHeader(msg, { replyInfo, priority, needsExpand, expanded, hidden }),
+      h('section', {        
         classList: [ when(expanded, '-expanded') ],
         hooks: [ ExpanderHook(needsExpand) ]
-      }, [content]),
+      //}, when(hidden, h('div.main', ['⚠️ Message hidden from ',api.profile.html.person(msg.value.author)]) , [content])),
+      },when(hidden, h('div.main', ['⚠️ Message hidden because your friends block this user']) ,[content])),
       computed(msg.key, (key) => {
         if (ref.isMsg(key)) {
           return h('footer', [
@@ -94,9 +107,12 @@ exports.create = function (api) {
                 'ev-click': toggleAndTrack(expanded)
               }, when(expanded, i18n('See less'), i18n('See more')))
             ])),
-            h('div.actions', [
+            when(hidden, h('a', {
+              href: '#',
+              'ev-click': toggleAndTrack(hidden)
+              }, 'Show message') ,h('div.actions', [
               api.message.html.action(msg)
-            ])
+            ]))
           ])
         }
       }),

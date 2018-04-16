@@ -59,6 +59,12 @@ Message {
     }
   }
 
+  -friendsBlocking {
+    section {
+      padding: 10px;
+    }
+  }
+
   -compact {
     section {
       max-height: 300px
@@ -98,6 +104,7 @@ Message {
         }
       }
     }
+
     section {
       font-size: 90%
       font-style: italic
