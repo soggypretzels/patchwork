@@ -27,6 +27,8 @@ exports.gives = nest('message.html.layout')
 exports.create = function (api) {
   const i18n = api.intl.sync.i18n
   var yourFollows = null
+  var usersBlockedByFriends = []
+  var usersNotBlockedByFriends = []
 
   // to get sync follows
   setImmediate(() => {
@@ -76,14 +78,19 @@ exports.create = function (api) {
       classList.push('-unread')
     }
 
-    if (api.profile.obs.contact(msg.value.author).blockingFriendsCount() > 3 && !yourFollows().includes(msg.value.author)) {
-
+    if (usersBlockedByFriends.includes(msg.value.author)){
       classList.push('-friendsBlocking')
       hidden.set(true)
-      //content = h('div.main', ['⚠️ Message hidden because your friends block this user ',api.profile.html.person(msg.value.author)])
-      //var element = api.message.html.friendsBlocking(msg)
-      //element.dataset = {} //not sure why this needs to be here. Where does this get set otherwise?
-      //return element
+    } else {
+      if (!usersNotBlockedByFriends.includes(msg.value.author)){
+        if (api.profile.obs.contact(msg.value.author).blockingFriendsCount() > 3 && !yourFollows().includes(msg.value.author)){
+          usersBlockedByFriends.push(msg.value.author)
+          classList.push('-friendsBlocking')
+          hidden.set(true)
+        } else {
+          usersNotBlockedByFriends.push(msg.value.author)
+        }
+      }
     }
     
     return h('div', {
